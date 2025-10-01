@@ -85,8 +85,14 @@ jobs:
           echo "🔒 INICIANDO OWASP ZAP SECURITY SCAN"
           echo "======================================"
           
-          # Ejecutar ZAP con la imagen correcta (stable, no weekly)
-          docker run --network="host" -v $(pwd):/zap/wrk/:rw \
+          # Crear directorio para reportes con permisos correctos
+          mkdir -p zap-reports
+          chmod 777 zap-reports
+          
+          # Ejecutar ZAP con permisos correctos
+          docker run --network="host" \
+            -v $(pwd)/zap-reports:/zap/wrk/:rw \
+            -u root \
             -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t http://localhost:3000 -r zap-report.html || true
           
@@ -113,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-report
-          path: zap-report.html
+          path: zap-reports/zap-report.html
 
   deploy-staging:
     runs-on: ubuntu-latest

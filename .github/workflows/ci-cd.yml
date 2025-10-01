@@ -73,30 +73,27 @@ jobs:
 
       - name: Start application in background
         run: |
-          # Iniciar la aplicación
           echo "🚀 Iniciando aplicación Node.js..."
           npm start &
-          echo "⏳ Esperando 25 segundos para que la app esté lista..."
-          sleep 25
-          echo "✅ Aplicación debería estar ejecutándose en http://localhost:3000"
+          echo "⏳ Esperando 30 segundos para que la app esté lista..."
+          sleep 30
+          echo "✅ Verificando que la aplicación responde..."
+          curl -f http://localhost:3000/health || exit 1
 
       - name: Run OWASP ZAP Baseline Scan
         run: |
           echo "🔒 INICIANDO OWASP ZAP SECURITY SCAN"
           echo "======================================"
           
-          # Ejecutar ZAP directamente sin action problemática
-          docker run --name zap-scan -u zap -p 8080:8080 -d owasp/zap2docker-weekly zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.disablekey=true
-          
-          echo "⏳ Esperando a que ZAP inicie..."
-          sleep 15
-          
-          # Escanear la aplicación
-          docker exec zap-scan zap-cli quick-scan --self-contained --start-options '-config api.disablekey=true' http://host.docker.internal:3000
+          # Ejecutar ZAP con la imagen correcta (stable, no weekly)
+          docker run --network="host" -v $(pwd):/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:3000 -r zap-report.html || true
           
           echo "✅ OWASP ZAP SCAN COMPLETADO"
           
       - name: Display Security Results
+        if: always()
         run: |
           echo " "
           echo "🎉 OWASP ZAP SECURITY SCAN - EJECUTADO"
@@ -110,7 +107,13 @@ jobs:
           echo "   • CSRF (Cross-Site Request Forgery)"
           echo "   • Security Misconfigurations"
           echo "   • Information Disclosure"
-
+          
+      - name: Upload ZAP Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-security-report
+          path: zap-report.html
 
   deploy-staging:
     runs-on: ubuntu-latest

@@ -130,7 +130,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Necesario para SonarCloud
+          fetch-depth: 0  # Necesario para Sonar
 
       - name: Setup Node.js
         uses: actions/setup-node@v3

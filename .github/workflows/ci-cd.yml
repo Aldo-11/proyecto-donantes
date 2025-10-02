@@ -151,8 +151,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=Aldo-11_proyecto-donantes
-            -Dsonar.organization=Aldo-11
+            -Dsonar.projectKey=aldo-11_proyecto-donantes
+            -Dsonar.organization=aldo-11
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.coverage.exclusions=**/tests/**,**/node_modules/**
             -Dsonar.javascript.exclusions=**/node_modules/**
